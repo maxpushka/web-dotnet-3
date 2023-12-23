@@ -13,8 +13,7 @@ public class LoginModel
     public string Password { get; set; }
 }
 
-
-public class UserRegisterInput: LoginModel
+public class UserRegisterInput : LoginModel
 {
     public string Mobile { get; set; }
 

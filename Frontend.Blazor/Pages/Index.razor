@@ -18,8 +18,41 @@
     }
 }
 
+@if (_analysisResponse?.Matches.Count > 0)
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>File ID</th>
+            <th>Duplicate With</th>
+            <th>Duplicated Lines</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var match in _analysisResponse.Matches)
+        {
+            <tr>
+                <td>@match.FileId</td>
+                <td>@match.DuplicateWith</td>
+                <td>
+                    @foreach (var line in match.DuplicatedLines)
+                    {
+                        <div>@line</div>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <div>No matches found.</div>
+}
+
 @code {
     private readonly AnalysisRequest _analysisRequest = new();
+    private AnalysisResponse _analysisResponse = null;
     private readonly List<IBrowserFile> _selectedFiles = [];
     private readonly List<string> _uploadMessages = [];
 
@@ -75,8 +108,12 @@
         }
 
         var accessToken = await LoginService.GetAccessTokenAsync();
-        await LabService.AnalyzeLab(accessToken, _analysisRequest);
-        _selectedFiles.Clear(); // Clear the list after uploading
+        var analysisResponse = await LabService.AnalyzeLab(accessToken, _analysisRequest);
+        _analysisResponse = analysisResponse;
+
+        // Clear lists after uploading
+        _selectedFiles.Clear();
+        _uploadMessages.Clear();
     }
 
 }
