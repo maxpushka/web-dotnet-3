@@ -14,6 +14,4 @@ public class Lab
     [Required] public string Name { get; set; }
 
     [Required] public DateTime SubmissionDate { get; set; } = DateTime.Now;
-
-    [Required] public string FileContent { get; set; }
 }

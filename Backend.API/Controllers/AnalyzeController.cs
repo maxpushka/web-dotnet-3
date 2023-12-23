@@ -1,3 +1,4 @@
+using System.Text;
 using Backend.API.Data;
 using Backend.API.Entities;
 using Backend.API.Models;
@@ -19,14 +20,28 @@ public class AnalyzeController(UserManager<ApplicationUser> userManager, Applica
         var user = await userManager.FindByIdAsync(input.UserId);
         if (user == null) return NotFound("User not found");
 
-        var submissions = context.LabSubmissions
-            .Where(submission => submission.UserId == user.Id)
-            .Select(submission => new
-            {
-                submission.Id, submission.UserId,
-                LabName = submission.Name, submission.SubmissionDate
-            })
-            .ToList();
-        return Ok(submissions);
+        var lab = new Lab
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = input.Name,
+            UserId = user.Id
+        };
+
+
+        var labFiles = input.FilesContent.Select(file => new LabFile
+        {
+            Id = Guid.NewGuid().ToString(),
+            FileContent = Encoding.UTF8.GetString(Convert.FromBase64String(file.Value)),
+            Name = file.Key,
+            Lab = lab // tie file to created lab
+        }).ToList();
+
+        await context.Labs.AddAsync(lab);
+        await context.LabFiles.AddRangeAsync(labFiles);
+
+        await context.SaveChangesAsync();
+
+        var result = new AnalysisResponse();
+        return Ok(result);
     }
 }

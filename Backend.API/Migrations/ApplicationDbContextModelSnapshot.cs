@@ -400,7 +400,7 @@ namespace Backend.API.Migrations
                     b.Navigation("UserRoles");
                 });
             
-            modelBuilder.Entity("Backend.API.Entities.LabSubmission", b =>
+            modelBuilder.Entity("Backend.API.Entities.Lab", b =>
             {
                 b.Property<string>("Id")
                     .HasColumnType("nvarchar(450)");
@@ -409,7 +409,7 @@ namespace Backend.API.Migrations
                     .IsRequired()
                     .HasColumnType("int");
                 
-                b.Property<string>("LabName")
+                b.Property<string>("Name")
                     .IsRequired()
                     .HasColumnType("nvarchar(max)");
                 
@@ -417,10 +417,6 @@ namespace Backend.API.Migrations
                     .IsRequired()
                     .HasColumnType("datetime2");
                 
-                b.Property<string>("FileContent")
-                    .IsRequired()
-                    .HasColumnType("nvarchar(max)");
-            
                 b.HasKey("Id");
                 b.HasOne("Backend.API.Entities.ApplicationUser", "User")
                     .WithMany()
@@ -428,8 +424,39 @@ namespace Backend.API.Migrations
                     .OnDelete(DeleteBehavior.Cascade)
                     .IsRequired();
                     
-                b.ToTable("LabSubmissions", (string)null);
+                b.ToTable("Labs", (string)null);
             });
+            
+            modelBuilder.Entity("Backend.API.Entities.LabFile", b =>
+            {
+                b.Property<string>("Id")
+                    .HasColumnType("nvarchar(450)");
+
+                b.Property<string>("LabId")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(450)");
+
+                b.Property<string>("Name")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<string>("FileContent")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
+
+                b.HasKey("Id");
+
+                b.HasIndex("LabId");
+
+                b.ToTable("LabFiles");
+
+                b.HasOne("Backend.API.Entities.Lab", "Lab")
+                    .WithMany()
+                    .HasForeignKey("LabId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+            });
+
 #pragma warning restore 612, 618
         }
     }

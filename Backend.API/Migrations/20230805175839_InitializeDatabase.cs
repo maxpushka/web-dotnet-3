@@ -165,25 +165,44 @@ namespace Backend.API.Migrations
                 });
             
             migrationBuilder.CreateTable(
-                name: "LabSubmissions",
+                name: "Labs",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LabName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SubmissionDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    FileContent = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_LabSubmissions", x => x.Id);
+                    table.PrimaryKey("PK_Labs", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_LabSubmissions_AspNetUsers_UserId",
+                        name: "FK_Labs_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                 });
-
+            
+            migrationBuilder.CreateTable(
+                name: "LabFiles",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LabId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FileContent = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LabFiles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LabFiles_Labs_LabId",
+                        column: x => x.LabId,
+                        principalTable: "Labs",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+            
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
@@ -259,6 +278,11 @@ namespace Backend.API.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+            
+            migrationBuilder.CreateIndex(
+                name: "IX_LabFiles_LabId",
+                table: "LabFiles",
+                column: "LabId");
         }
 
         /// <inheritdoc />
