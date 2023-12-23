@@ -1,0 +1,66 @@
+@page "/users"
+@using Frontend.Blazor.Models
+@inject UserService UserService
+@inject LoginService LoginService
+<h3>All Users</h3>
+
+@if (_usersResponse?.Users.Count > 0)
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Name</th>
+            <th>Family Name</th>
+            <th>Creation Date</th>
+            <th>Mobile</th>
+            <th>Id</th>
+            <th>Role</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var match in _usersResponse.Users)
+        {
+            <tr>
+                <td>@match.Username</td>
+                <td>@match.Email</td>
+                <td>@match.Name</td>
+                <td>@match.Family</td>
+                <td>@match.CreationDate</td>
+                <td>@match.Mobile</td>
+                <td>@match.Id</td>
+                <td>
+                    @foreach (var role in match.Role)
+                    {
+                        <div>@role</div>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <div>No users found.</div>
+}
+
+@code {
+    private UsersResponse _usersResponse;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var accessToken = await LoginService.GetAccessTokenAsync();
+            var users = await UserService.GetAllUsers(accessToken);
+            _usersResponse = users;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+
+}

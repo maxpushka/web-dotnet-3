@@ -80,9 +80,11 @@ public class AccountController(
             logger.LogTrace($"Email: {credential.Email} has access to login");
             var passwordHasher = new PasswordHasher<ApplicationUser>();
             var appUser = await userManager.FindByEmailAsync(credential.Email);
-            var result = _ldapSettings.Enable 
+            var result = _ldapSettings.Enable
                 ? await ldapService.Authenticate(credential.Email, credential.Password)
-                : string.IsNullOrWhiteSpace(appUser?.PasswordHash) is false && passwordHasher.VerifyHashedPassword(appUser, appUser.PasswordHash, credential.Password) == PasswordVerificationResult.Success;
+                : string.IsNullOrWhiteSpace(appUser?.PasswordHash) is false &&
+                  passwordHasher.VerifyHashedPassword(appUser, appUser.PasswordHash, credential.Password) ==
+                  PasswordVerificationResult.Success;
             if (result)
             {
                 var token = accessControl.GenerateJWTToken(user);
@@ -125,7 +127,7 @@ public class AccountController(
         var result = await accessControl.CreateUser(input);
         if (!result.Any())
             return Ok(new BaseApiResponse<string>("OK"));
-        
+
         return BadRequest(new BaseApiResponse<string> { Errors = result });
     }
 

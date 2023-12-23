@@ -63,4 +63,38 @@ public class BackendApiHttpClient(HttpClient httpClient) : IBackendApiHttpClient
             return result;
         });
     }
+
+    public async Task<ApiResponse<UsersResponse>> GetAllUsersAsync(string authToken,
+        CancellationToken? cancellationToken = null)
+    {
+        return await ApiResponse<UsersResponse>.HandleExceptionAsync(async () =>
+        {
+            httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+            var response = await httpClient.GetAsync("api/account/user");
+
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<UsersResponse>>(cancellationToken ??
+                CancellationToken.None);
+            return result;
+        });
+    }
+
+    public async Task<ApiResponse<LabsResponse>> GetAllLabsAsync(string authToken,
+        CancellationToken? cancellationToken = null)
+    {
+        return await ApiResponse<LabsResponse>.HandleExceptionAsync(async () =>
+        {
+            httpClient.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+            var response = await httpClient.GetAsync("api/Analyze/All");
+
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<LabsResponse>>(cancellationToken ??
+                CancellationToken.None);
+            return result;
+        });
+    }
 }

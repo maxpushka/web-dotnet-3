@@ -1,0 +1,55 @@
+@page "/labs"
+@using Frontend.Blazor.Models
+@inject LabService LabService
+@inject LoginService LoginService
+<h3>All Labs</h3>
+
+@if (_labsResponse?.Labs.Count > 0)
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>User ID</th>
+            <th>Submission date</th>
+            <th>Number of submitted files</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var match in _labsResponse.Labs)
+        {
+            <tr>
+                <td>@match.Id</td>
+                <td>@match.Name</td>
+                <td>@match.UserId</td>
+                <td>@match.SubmissionDate</td>
+                <td>@match.NumberOfFiles</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <div>No labs found.</div>
+}
+
+@code {
+    private LabsResponse _labsResponse;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var accessToken = await LoginService.GetAccessTokenAsync();
+            var labs = await LabService.GetAllLabsAsync(accessToken);
+            _labsResponse = labs;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+
+}

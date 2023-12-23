@@ -191,6 +191,28 @@ namespace Backend.API.Migrations
                             TwoFactorEnabled = false,
                             UserName = "jilldoe@gmail.com",
                             PasswordHash = "AQAAAAIAAYagAAAAEK1W3FMebsaQ5p6sqwXybnO6AdMcllqC99NBccKaS99FJZji0MmRjLfY4vMAR/ldRA=="
+                        },
+                        new
+                        {
+                            Id = "5e09c7f5-f4c5-4d02-bdbd-284ad9d5bbca",
+                            AccessFailedCount = 0,
+                            ConcurrencyStamp = "6b263a8b-120f-4f48-a6bd-ad3a9c4c913d",
+                            Disabled = false,
+                            Email = "admin@gmail.com",
+                            EmailConfirmed = true,
+                            Family = "Admin",
+                            LockoutEnabled = true,
+                            Name = "Admin",
+                            NormalizedEmail = "ADMIN@GMAIL.COM",
+                            NormalizedUserName = "ADMIN@GMAIL.COM",
+                            PhoneNumber = "0963233542",
+                            PhoneNumberConfirmed = true,
+                            RefreshTokenExpireTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            RegisterDate = new DateTime(2023, 8, 5, 21, 28, 39, 90, DateTimeKind.Local).AddTicks(6005),
+                            SecurityStamp = "OHACRUB556PUCIJOKNPX6QMTHA5G77DG",
+                            TwoFactorEnabled = false,
+                            UserName = "admin@gmail.com",
+                            PasswordHash = "AQAAAAIAAYagAAAAEK1W3FMebsaQ5p6sqwXybnO6AdMcllqC99NBccKaS99FJZji0MmRjLfY4vMAR/ldRA=="
                         });
                 });
 
@@ -218,6 +240,11 @@ namespace Backend.API.Migrations
                         {
                             UserId = "f0dccee8-a3e1-45f8-9bb7-f7e7decebd09",
                             RoleId = "03B11179-8A33-4D3B-8092-463249F755A5"
+                        },
+                        new
+                        {
+                            UserId = "5e09c7f5-f4c5-4d02-bdbd-284ad9d5bbca",
+                            RoleId = "CF0B61E1-3BB2-40D6-8E17-60CF475CE884"
                         });
                 });
 

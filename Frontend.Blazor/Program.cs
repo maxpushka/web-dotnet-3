@@ -12,6 +12,7 @@ builder.Services.AddServerSideBlazor();
 
 builder.Services.AddTransient<LoginService>();
 builder.Services.AddTransient<LabService>();
+builder.Services.AddTransient<UserService>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddHttpClient<IBackendApiHttpClient, BackendApiHttpClient>(options =>
 {

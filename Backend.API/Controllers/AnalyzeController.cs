@@ -21,11 +21,18 @@ public class AnalyzeController(UserManager<ApplicationUser> userManager, Applica
         var user = await userManager.FindByIdAsync(input.UserId);
         if (user == null) return NotFound("User not found");
 
+        var labFiles = await PersistLab(input, user.Id);
+        var result = await PerformDuplicationAnalysis(labFiles, context);
+        return Ok(new BaseApiResponse<AnalysisResponse>(result));
+    }
+
+    private async Task<List<LabFile>> PersistLab(AnalysisInput input, string userId)
+    {
         var lab = new Lab
         {
             Id = Guid.NewGuid().ToString(),
             Name = input.Name,
-            UserId = user.Id
+            UserId = userId
         };
 
         var labFiles = input.FilesContent.Select(file => new LabFile
@@ -41,8 +48,7 @@ public class AnalyzeController(UserManager<ApplicationUser> userManager, Applica
 
         await context.SaveChangesAsync();
 
-        var result = await PerformDuplicationAnalysis(labFiles, context);
-        return Ok(new BaseApiResponse<AnalysisResponse>(result));
+        return labFiles;
     }
 
     private async Task<AnalysisResponse> PerformDuplicationAnalysis(List<LabFile> otherLabFiles,
@@ -60,7 +66,6 @@ public class AnalyzeController(UserManager<ApplicationUser> userManager, Applica
         var allFileContents = PreprocessFiles(allLabFiles);
         var otherFileContents = PreprocessFiles(otherLabFiles);
 
-
         // Compare files for duplications
 
         var result = new AnalysisResponse();
@@ -68,19 +73,20 @@ public class AnalyzeController(UserManager<ApplicationUser> userManager, Applica
         {
             foreach (var otherFile in otherLabFiles)
             {
-                // impossible since IDs are filtered above
-                if (file.Id == otherFile.Id) continue;
+                if (file.Id == otherFile.Id) continue; // impossible since IDs are filtered above
 
-                var duplicates = allFileContents[file.Id].Intersect(otherFileContents[otherFile.Id]);
-                if (duplicates.Any())
+                var otherFileContent = otherFileContents[otherFile.Id];
+                var duplicates = allFileContents[file.Id].Intersect(otherFileContent);
+                if (!duplicates.Any()) continue;
+
+                var duplicatedLines = duplicates.ToList();
+                result.Matches.Add(new LabFileMatch
                 {
-                    result.Matches.Add(new LabFileMatch
-                    {
-                        FileId = file.Id,
-                        DuplicateWith = otherFile.Id,
-                        DuplicatedLines = duplicates.ToList()
-                    });
-                }
+                    FileId = file.Id,
+                    DuplicateWith = otherFile.Id,
+                    DuplicatedLines = duplicatedLines,
+                    DuplicatePercentage = duplicatedLines.Count / (float)otherFileContent.Count * 100
+                });
             }
         }
 
@@ -99,5 +105,27 @@ public class AnalyzeController(UserManager<ApplicationUser> userManager, Applica
         }
 
         return fileContents;
+    }
+
+    [HttpGet("All")]
+    [Authorize]
+    public async Task<ActionResult<BaseApiResponse<LabsResponse>>> GetAllLabs()
+    {
+        try
+        {
+            var labs = await context.Labs.Select(l => new LabVM
+            {
+                Id = l.Id,
+                UserId = l.UserId,
+                Name = l.Name,
+                NumberOfFiles = (uint)context.LabFiles.Count(lf => lf.LabId == l.Id)
+            }).ToListAsync();
+
+            return Ok(new BaseApiResponse<LabsResponse>(new LabsResponse { Labs = labs }));
+        }
+        catch (Exception e)
+        {
+            return StatusCode(500, e.Message);
+        }
     }
 }
