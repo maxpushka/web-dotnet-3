@@ -9,7 +9,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IdentityUserClaim<string>
     , ApplicationUserRole, IdentityUserLogin<string>, IdentityRoleClaim<string>, IdentityUserToken<string>>
 {
-    public DbSet<Lab> LabSubmissions { get; set; }
+    public DbSet<Lab> Labs { get; set; }
+    public DbSet<LabFile> LabFiles { get; set; }
 
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
