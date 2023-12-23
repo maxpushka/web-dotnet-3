@@ -16,4 +16,15 @@ public class LabService(IBackendApiHttpClient backendApiHttpClient)
 
         return response.Result;
     }
+
+    public async Task<LabsResponse> GetAllLabsAsync(string authToken)
+    {
+        var response = await backendApiHttpClient.GetAllLabsAsync(authToken);
+        if (!response.Errors.IsNullOrEmpty())
+        {
+            throw new HttpRequestException($"request for labs failed: {response.Errors}");
+        }
+
+        return response.Result;
+    }
 }

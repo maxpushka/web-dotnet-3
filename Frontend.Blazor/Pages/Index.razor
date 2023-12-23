@@ -25,6 +25,7 @@
         <tr>
             <th>File ID</th>
             <th>Duplicate With</th>
+            <th>Duplicate Percentage</th>
             <th>Duplicated Lines</th>
         </tr>
         </thead>
@@ -34,6 +35,9 @@
             <tr>
                 <td>@match.FileId</td>
                 <td>@match.DuplicateWith</td>
+                <td>
+                    @match.DuplicatePercentage <span>%</span>
+                </td>
                 <td>
                     @foreach (var line in match.DuplicatedLines)
                     {
@@ -107,13 +111,21 @@ else
             break;
         }
 
-        var accessToken = await LoginService.GetAccessTokenAsync();
-        var analysisResponse = await LabService.AnalyzeLab(accessToken, _analysisRequest);
-        _analysisResponse = analysisResponse;
+        try
+        {
+            var accessToken = await LoginService.GetAccessTokenAsync();
+            var analysisResponse = await LabService.AnalyzeLab(accessToken, _analysisRequest);
+            _analysisResponse = analysisResponse;
 
-        // Clear lists after uploading
-        _selectedFiles.Clear();
-        _uploadMessages.Clear();
+            // Clear lists after uploading
+            _selectedFiles.Clear();
+            _uploadMessages.Clear();
+        }
+        catch (Exception ex)
+        {
+            _uploadMessages.Clear();
+            _uploadMessages.Add($"Error analyzing lab: {ex.Message}");
+        }
     }
 
 }

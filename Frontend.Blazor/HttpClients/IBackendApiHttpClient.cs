@@ -5,6 +5,7 @@ namespace Frontend.Blazor.HttpClients;
 public interface IBackendApiHttpClient
 {
     Task<ApiResponse<string>> RegisterUserAsync(UserRegisterInput model, CancellationToken? cancellationToken = null);
+
     Task<ApiResponse<AuthResponse>> LoginUserAsync(LoginModel model, CancellationToken? cancellationToken = null);
 
     Task<ApiResponse<AuthResponse>> RefreshTokenAsync(string refreshToken,
@@ -12,4 +13,8 @@ public interface IBackendApiHttpClient
 
     Task<ApiResponse<AnalysisResponse>> AnalyzeLabAsync(string authToken, AnalysisRequest analysisRequest,
         CancellationToken? cancellationToken = null);
+
+    Task<ApiResponse<UsersResponse>> GetAllUsersAsync(string authToken, CancellationToken? cancellationToken = null);
+
+    Task<ApiResponse<LabsResponse>> GetAllLabsAsync(string authToken, CancellationToken? cancellationToken = null);
 }

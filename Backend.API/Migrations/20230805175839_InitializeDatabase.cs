@@ -218,7 +218,8 @@ namespace Backend.API.Migrations
                 values: new object[,]
                 {
                     { "c784d6e7-4424-4fe1-a1bb-b03c6a9a26cb", 0, "2fe7f8d5-d321-4c77-884b-73ea438b1511", false, "joedoe@gmail.com", true, "Doe", true, null, "Joe", "JOEDOE@GMAIL.COM", "JOEDOE@GMAIL.COM", "AQAAAAIAAYagAAAAEK1W3FMebsaQ5p6sqwXybnO6AdMcllqC99NBccKaS99FJZji0MmRjLfY4vMAR/ldRA==", "0963233542", true, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2023, 8, 5, 21, 28, 39, 90, DateTimeKind.Local).AddTicks(5955), "LJNTPIYBD4KN2CFESBRMRL2YDQOXANQ4", false, "joedoe@gmail.com" },
-                    { "f0dccee8-a3e1-45f8-9bb7-f7e7decebd09", 0, "6b263a8b-120f-4f48-a6bd-ad3a9c4c913d", false, "jilldoe@gmail.com", true, "Doe", true, null, "Jill", "JILLDOE@GMAIL.COM", "JILLDOE@GMAIL.COM", "AQAAAAIAAYagAAAAEK1W3FMebsaQ5p6sqwXybnO6AdMcllqC99NBccKaS99FJZji0MmRjLfY4vMAR/ldRA==", "0963233542", true, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2023, 8, 5, 21, 28, 39, 90, DateTimeKind.Local).AddTicks(6005), "OHACRUB556PUCIJOKNPX6QMTHA5G77DG", false, "jilldoe@gmail.com" }
+                    { "f0dccee8-a3e1-45f8-9bb7-f7e7decebd09", 0, "6b263a8b-120f-4f48-a6bd-ad3a9c4c913d", false, "jilldoe@gmail.com", true, "Doe", true, null, "Jill", "JILLDOE@GMAIL.COM", "JILLDOE@GMAIL.COM", "AQAAAAIAAYagAAAAEK1W3FMebsaQ5p6sqwXybnO6AdMcllqC99NBccKaS99FJZji0MmRjLfY4vMAR/ldRA==", "0963233542", true, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2023, 8, 5, 21, 28, 39, 90, DateTimeKind.Local).AddTicks(6005), "OHACRUB556PUCIJOKNPX6QMTHA5G77DG", false, "jilldoe@gmail.com" },
+                    { "5e09c7f5-f4c5-4d02-bdbd-284ad9d5bbca", 0, "6b263a8b-120f-4f48-a6bd-ad3a9c4c913d", false, "admin@gmail.com", true, "Admin", true, null, "Admin", "ADMIN@GMAIL.COM", "ADMIN@GMAIL.COM", "AQAAAAIAAYagAAAAEK1W3FMebsaQ5p6sqwXybnO6AdMcllqC99NBccKaS99FJZji0MmRjLfY4vMAR/ldRA==", "0963233542", true, null, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(2023, 8, 5, 21, 28, 39, 90, DateTimeKind.Local).AddTicks(6005), "OHACRUB556PUCIJOKNPX6QMTHA5G77DG", false, "admin@gmail.com" }
                 });
 
             migrationBuilder.InsertData(
@@ -237,7 +238,8 @@ namespace Backend.API.Migrations
                 values: new object[,]
                 {
                     { "03B11179-8A33-4D3B-8092-463249F755A5", "c784d6e7-4424-4fe1-a1bb-b03c6a9a26cb" },
-                    { "03B11179-8A33-4D3B-8092-463249F755A5", "f0dccee8-a3e1-45f8-9bb7-f7e7decebd09" }
+                    { "03B11179-8A33-4D3B-8092-463249F755A5", "f0dccee8-a3e1-45f8-9bb7-f7e7decebd09" },
+                    { "CF0B61E1-3BB2-40D6-8E17-60CF475CE884", "5e09c7f5-f4c5-4d02-bdbd-284ad9d5bbca" }
                 });
 
             migrationBuilder.CreateIndex(
