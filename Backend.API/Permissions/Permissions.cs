@@ -3,24 +3,15 @@ using Newtonsoft.Json;
 
 namespace Backend.API.Permissions;
 
-public class Permission
+public class Permission(string key, string title, string value = "")
 {
-    protected Permission(string key, string title, string value = "")
-    {
-        Nodes = new List<Permission>();
-        Key = key;
-        Title = title;
-        Value = string.IsNullOrEmpty(value) ? key : value;
-        IsChecked = false;
-    }
+    public string Value { get; } = string.IsNullOrEmpty(value) ? key : value;
+    public string Title { get; private set; } = title;
 
-    public string Value { get; }
-    public string Title { get; private set; }
+    [JsonIgnore] public string Key { get; } = key;
 
-    [JsonIgnore] public string Key { get; }
-
-    public bool IsChecked { get; set; }
-    public ICollection<Permission> Nodes { get; }
+    public bool IsChecked { get; set; } = false;
+    public ICollection<Permission> Nodes { get; } = new List<Permission>();
 
     public Permission AddNode(string key, string title)
     {

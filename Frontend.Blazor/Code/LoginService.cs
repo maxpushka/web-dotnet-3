@@ -3,38 +3,54 @@ using System.Security.Cryptography;
 using Frontend.Blazor.HttpClients;
 using Frontend.Blazor.Models;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace Frontend.Blazor.Code;
 
-public class LoginService
+// ILocalStorage wraps common operations on ProtectedLocalStorage class
+public interface ILocalStorage
+{
+    Task SetAsync<T>(string key, T value);
+    Task<T> GetAsync<T>(string key);
+    Task DeleteAsync(string key);
+}
+
+public class LocalStorage(IProtectedLocalStorage localStorage) : ILocalStorage
+{
+    public async Task SetAsync<T>(string key, T value)
+    {
+        await localStorage.SetAsync(key, value);
+    }
+
+    public async Task<T> GetAsync<T>(string key)
+    {
+        var storageResult = await localStorage.GetAsync<T>(key);
+        return !storageResult.Success ? default : storageResult.Value;
+    }
+
+    public async Task DeleteAsync(string key)
+    {
+        await localStorage.DeleteAsync(key);
+    }
+}
+
+public class LoginService(
+    ILocalStorage localStorage,
+    INavigationManager navigation,
+    IConfiguration configuration,
+    IBackendApiHttpClient backendApiHttpClient)
+    : ILoginService
 {
     private const string AccessToken = nameof(AccessToken);
     private const string RefreshToken = nameof(RefreshToken);
 
-    private readonly ProtectedLocalStorage _localStorage;
-    private readonly NavigationManager _navigation;
-    private readonly IConfiguration _configuration;
-    private readonly IBackendApiHttpClient _backendApiHttpClient;
-
-    public LoginService(ProtectedLocalStorage localStorage, NavigationManager navigation, IConfiguration configuration,
-        IBackendApiHttpClient backendApiHttpClient)
-    {
-        _localStorage = localStorage;
-        _navigation = navigation;
-        _configuration = configuration;
-        _backendApiHttpClient = backendApiHttpClient;
-    }
-
     public async Task<bool> LoginAsync(LoginModel model)
     {
-        var response = await _backendApiHttpClient.LoginUserAsync(model);
+        var response = await backendApiHttpClient.LoginUserAsync(model);
         if (string.IsNullOrEmpty(response?.Result?.JwtToken))
             return false;
 
-        await _localStorage.SetAsync(AccessToken, response.Result.JwtToken);
-        await _localStorage.SetAsync(RefreshToken, response.Result.RefreshToken);
+        await localStorage.SetAsync(AccessToken, response.Result.JwtToken);
+        await localStorage.SetAsync(RefreshToken, response.Result.RefreshToken);
 
         return true;
     }
@@ -43,12 +59,12 @@ public class LoginService
     public async Task<List<Claim>> GetLoginInfoAsync()
     {
         var emptyResult = new List<Claim>();
-        ProtectedBrowserStorageResult<string> accessToken;
-        ProtectedBrowserStorageResult<string> refreshToken;
+        string accessToken;
+        string refreshToken;
         try
         {
-            accessToken = await _localStorage.GetAsync<string>(AccessToken);
-            refreshToken = await _localStorage.GetAsync<string>(RefreshToken);
+            accessToken = await localStorage.GetAsync<string>(AccessToken);
+            refreshToken = await localStorage.GetAsync<string>(RefreshToken);
         }
         catch (CryptographicException)
         {
@@ -56,28 +72,26 @@ public class LoginService
             return emptyResult;
         }
 
-        if (accessToken.Success is false || accessToken.Value == default)
+        if (accessToken == default)
             return emptyResult;
 
-        var claims = JwtTokenHelper.ValidateDecodeToken(accessToken.Value, _configuration);
+        var claims = JwtTokenHelper.ValidateDecodeToken(accessToken, configuration);
 
         if (claims.Count != 0)
             return claims;
 
-        if (refreshToken.Value != default)
+        if (refreshToken != default)
         {
-            var response = await _backendApiHttpClient.RefreshTokenAsync(refreshToken.Value);
+            var response = await backendApiHttpClient.RefreshTokenAsync(refreshToken);
             if (string.IsNullOrWhiteSpace(response?.Result?.JwtToken) is false)
             {
-                await _localStorage.SetAsync(AccessToken, response.Result.JwtToken);
-                await _localStorage.SetAsync(RefreshToken, response.Result.RefreshToken);
-                claims = JwtTokenHelper.ValidateDecodeToken(response.Result.JwtToken, _configuration);
+                await localStorage.SetAsync(AccessToken, response.Result.JwtToken);
+                await localStorage.SetAsync(RefreshToken, response.Result.RefreshToken);
+                claims = JwtTokenHelper.ValidateDecodeToken(response.Result.JwtToken, configuration);
                 return claims;
             }
-            else
-            {
-                await LogoutAsync();
-            }
+
+            await LogoutAsync();
         }
         else
         {
@@ -90,24 +104,23 @@ public class LoginService
     public async Task LogoutAsync()
     {
         await RemoveAuthDataFromStorageAsync();
-        _navigation.NavigateTo("/", true);
+        navigation.NavigateTo("/", true);
     }
 
     private async Task RemoveAuthDataFromStorageAsync()
     {
-        await _localStorage.DeleteAsync(AccessToken);
-        await _localStorage.DeleteAsync(RefreshToken);
+        await localStorage.DeleteAsync(AccessToken);
+        await localStorage.DeleteAsync(RefreshToken);
     }
 
     public async Task<string> GetAccessTokenAsync()
     {
-        ProtectedBrowserStorageResult<string> accessToken = await _localStorage.GetAsync<string>(AccessToken);
-
-        if (!accessToken.Success)
+        var accessToken = await localStorage.GetAsync<string>(AccessToken);
+        if (accessToken == default)
         {
             throw new AuthenticationFailureException("Access token not found");
         }
 
-        return accessToken.Value;
+        return accessToken;
     }
 }

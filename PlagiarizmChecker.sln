@@ -13,6 +13,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend.API", "Backend.API\Backend.API.csproj", "{90A6FFA3-9C09-4383-A9BA-457531F36D02}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Frontend.Blazor.Tests", "Frontend.Blazor.Tests\Frontend.Blazor.Tests.csproj", "{DFA4E36E-1731-44EB-AFF0-800FA1217695}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend.API.Tests", "Backend.API.Tests\Backend.API.Tests.csproj", "{D5C5B56A-E7DD-4361-AB8F-5B66DCC0F37A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{90A6FFA3-9C09-4383-A9BA-457531F36D02}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{90A6FFA3-9C09-4383-A9BA-457531F36D02}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{90A6FFA3-9C09-4383-A9BA-457531F36D02}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DFA4E36E-1731-44EB-AFF0-800FA1217695}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFA4E36E-1731-44EB-AFF0-800FA1217695}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFA4E36E-1731-44EB-AFF0-800FA1217695}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFA4E36E-1731-44EB-AFF0-800FA1217695}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5C5B56A-E7DD-4361-AB8F-5B66DCC0F37A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5C5B56A-E7DD-4361-AB8F-5B66DCC0F37A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5C5B56A-E7DD-4361-AB8F-5B66DCC0F37A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5C5B56A-E7DD-4361-AB8F-5B66DCC0F37A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
