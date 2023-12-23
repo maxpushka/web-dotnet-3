@@ -10,7 +10,7 @@ public class LabFile
     [Required] public string LabId { get; set; }
 
     [ForeignKey("LabId")] public virtual Lab Lab { get; set; }
-
+    
     [Required] public string Name { get; set; }
 
     [Required] public string FileContent { get; set; }

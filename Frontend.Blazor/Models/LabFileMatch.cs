@@ -1,4 +1,4 @@
-namespace Backend.API.Models;
+namespace Frontend.Blazor.Models;
 
 public class LabFileMatch
 {

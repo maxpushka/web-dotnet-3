@@ -58,8 +58,9 @@ public class BackendApiHttpClient(HttpClient httpClient) : IBackendApiHttpClient
 
             response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadFromJsonAsync<ApiResponse<AnalysisResponse>>(cancellationToken ??
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<AnalysisResponse>>(cancellationToken ??
                 CancellationToken.None);
+            return result;
         });
     }
 }
