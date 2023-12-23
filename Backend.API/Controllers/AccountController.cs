@@ -13,30 +13,18 @@ namespace Backend.API.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AccountController : ControllerBase
+public class AccountController(
+    IAccessControlService accessControl,
+    IOptions<JwtSettings> jwtSettings,
+    ILdapService ldapService,
+    IMemoryCache memoryChache,
+    ILogger<AccountController> logger,
+    IOptions<LdapSetting> ldapSettings,
+    UserManager<ApplicationUser> userManager)
+    : ControllerBase
 {
-    private readonly IAccessControlService _accessControl;
-
-    private readonly ILdapService _ldapService;
-    private readonly ILogger<AccountController> _logger;
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly LdapSetting _ldapSettings;
-    private readonly IMemoryCache _memoryCache;
-    private readonly int _refreshTokenExpiration;
-
-    public AccountController(IAccessControlService accessControl, IOptions<JwtSettings> jwtSettings, ILdapService ldapService,
-        IMemoryCache memoryChache, ILogger<AccountController> logger,
-        IOptions<LdapSetting> ldapSettings,
-        UserManager<ApplicationUser> userManager)
-    {
-        _accessControl = accessControl;
-        _ldapService = ldapService;
-        _memoryCache = memoryChache;
-        _refreshTokenExpiration = jwtSettings.Value.RefreshExpirationTime;
-        _logger = logger;
-        _userManager = userManager;
-        _ldapSettings = ldapSettings.Value;
-    }
+    private readonly LdapSetting _ldapSettings = ldapSettings.Value;
+    private readonly int _refreshTokenExpiration = jwtSettings.Value.RefreshExpirationTime;
 
     [HttpPost("Refresh")]
     [AllowAnonymous]
@@ -44,22 +32,22 @@ public class AccountController : ControllerBase
         [FromBody] RefreshTokenInput input)
     {
         var refreshToken = input.RefreshToken;
-        var userEmail = await _accessControl.RefreshTokenExists(refreshToken);
+        var userEmail = await accessControl.RefreshTokenExists(refreshToken);
 
         if (string.IsNullOrWhiteSpace(userEmail)) return Unauthorized();
 
-        if (_memoryCache.TryGetValue(userEmail, out _))
+        if (memoryChache.TryGetValue(userEmail, out _))
         {
-            await _accessControl.SetUserRefreshToken(userEmail, "", TimeSpan.Zero);
-            _memoryCache.Remove(userEmail);
+            await accessControl.SetUserRefreshToken(userEmail, "", TimeSpan.Zero);
+            memoryChache.Remove(userEmail);
             return Unauthorized();
         }
 
-        var claims = await _accessControl.GetUserClaimsBy(userEmail);
-        var jwtToken = _accessControl.GenerateJWTToken(claims);
+        var claims = await accessControl.GetUserClaimsBy(userEmail);
+        var jwtToken = accessControl.GenerateJWTToken(claims);
 
-        var newRefreshToken = _accessControl.GenerateRefreshToken();
-        var updateSuccessfully = await _accessControl.SetUserRefreshToken(userEmail, newRefreshToken,
+        var newRefreshToken = accessControl.GenerateRefreshToken();
+        var updateSuccessfully = await accessControl.SetUserRefreshToken(userEmail, newRefreshToken,
             TimeSpan.FromMinutes(_refreshTokenExpiration));
         if (!updateSuccessfully)
             return Conflict(new BaseApiResponse<AuthenticationResponse>
@@ -85,21 +73,21 @@ public class AccountController : ControllerBase
             return BadRequest(response);
         }
 
-        _logger.LogTrace($"Login Request recived for Email: {credential.Email}");
-        var user = await _accessControl.GetUserClaimsBy(credential.Email);
+        logger.LogTrace($"Login Request recived for Email: {credential.Email}");
+        var user = await accessControl.GetUserClaimsBy(credential.Email);
         if (user != null)
         {
-            _logger.LogTrace($"Email: {credential.Email} has access to login");
+            logger.LogTrace($"Email: {credential.Email} has access to login");
             var passwordHasher = new PasswordHasher<ApplicationUser>();
-            var appUser = await _userManager.FindByEmailAsync(credential.Email);
+            var appUser = await userManager.FindByEmailAsync(credential.Email);
             var result = _ldapSettings.Enable 
-                ? await _ldapService.Authenticate(credential.Email, credential.Password)
+                ? await ldapService.Authenticate(credential.Email, credential.Password)
                 : string.IsNullOrWhiteSpace(appUser?.PasswordHash) is false && passwordHasher.VerifyHashedPassword(appUser, appUser.PasswordHash, credential.Password) == PasswordVerificationResult.Success;
             if (result)
             {
-                var token = _accessControl.GenerateJWTToken(user);
-                var refreshToken = _accessControl.GenerateRefreshToken();
-                var updateSuccessfully = await _accessControl.SetUserRefreshToken(credential.Email, refreshToken,
+                var token = accessControl.GenerateJWTToken(user);
+                var refreshToken = accessControl.GenerateRefreshToken();
+                var updateSuccessfully = await accessControl.SetUserRefreshToken(credential.Email, refreshToken,
                     TimeSpan.FromMinutes(_refreshTokenExpiration));
                 if (!updateSuccessfully)
                     return Conflict(new BaseApiResponse<AuthenticationResponse>
@@ -115,11 +103,11 @@ public class AccountController : ControllerBase
                 });
             }
 
-            _logger.LogError($"user with email: {credential.Email} has not access to LDAP");
+            logger.LogError($"user with email: {credential.Email} has not access to LDAP");
             return Unauthorized();
         }
 
-        _logger.LogError($"there is no user with email: {credential.Email} in identity database");
+        logger.LogError($"there is no user with email: {credential.Email} in identity database");
         return NotFound();
     }
 
@@ -134,7 +122,7 @@ public class AccountController : ControllerBase
             return BadRequest(response);
         }
 
-        var result = await _accessControl.CreateUser(input);
+        var result = await accessControl.CreateUser(input);
         if (!result.Any())
             return Ok(new BaseApiResponse<string>("OK"));
         
@@ -145,11 +133,11 @@ public class AccountController : ControllerBase
     [Authorize(Policy = PolicyTypes.Users.Manage)]
     public async Task<ActionResult<BaseApiResponse<string>>> DisableUser([FromRoute] string id)
     {
-        var result = await _accessControl.DisableUser(id);
+        var result = await accessControl.DisableUser(id);
 
         if (!result.Succeeded && result.UpdatedUser == null)
             return NotFound(new BaseApiResponse<string> { Errors = new List<string> { "User not found" } });
-        _memoryCache.Set(result.UpdatedUser.Email, 1);
+        memoryChache.Set(result.UpdatedUser.Email, 1);
         return Ok(new BaseApiResponse<string>("done"));
     }
 
@@ -157,7 +145,7 @@ public class AccountController : ControllerBase
     [Authorize(Policy = PolicyTypes.Users.Manage)]
     public async Task<ActionResult<BaseApiResponse<UserVM>>> GetUser([FromRoute] string id)
     {
-        var result = await _accessControl.GetUsersById(id);
+        var result = await accessControl.GetUsersById(id);
         return Ok(new BaseApiResponse<UserVM> { Result = result });
     }
 
@@ -172,7 +160,7 @@ public class AccountController : ControllerBase
     [Authorize(Policy = PolicyTypes.Users.Manage)]
     public async Task<ActionResult<BaseApiResponse<List<string>>>> CreateRole([FromBody] RoleInput input)
     {
-        var result = await _accessControl.CreateRole(input);
+        var result = await accessControl.CreateRole(input);
         return Ok(new BaseApiResponse<List<string>>(result));
     }
 
@@ -180,7 +168,7 @@ public class AccountController : ControllerBase
     [Authorize(Policy = PolicyTypes.Users.Manage)]
     public async Task<ActionResult<BaseApiResponse<List<RoleItem>>>> GetAllRoles()
     {
-        var result = await _accessControl.GetAllRoles();
+        var result = await accessControl.GetAllRoles();
         return Ok(new BaseApiResponse<List<RoleItem>>(result));
     }
 
@@ -188,9 +176,9 @@ public class AccountController : ControllerBase
     [Authorize(Policy = PolicyTypes.Users.Manage)]
     public async Task<ActionResult<BaseApiResponse<bool>>> Update([FromRoute] string id, [FromBody] RoleInput roleInput)
     {
-        var result = await _accessControl.UpdateRolePermissions(id, roleInput);
-        var usersWithThisRole = await _accessControl.GetUsersByRoleId(id);
-        usersWithThisRole.ForEach(x => { _memoryCache.Set(x.Email, 1); });
+        var result = await accessControl.UpdateRolePermissions(id, roleInput);
+        var usersWithThisRole = await accessControl.GetUsersByRoleId(id);
+        usersWithThisRole.ForEach(x => { memoryChache.Set(x.Email, 1); });
         return Ok(new BaseApiResponse<bool>(result));
     }
 
@@ -201,7 +189,7 @@ public class AccountController : ControllerBase
         if (filterInput.RowCount == default) filterInput.RowCount = 15;
         if (filterInput.PageNumber == default) filterInput.PageNumber = 1;
 
-        var result = await _accessControl.GetUsers(filterInput);
+        var result = await accessControl.GetUsers(filterInput);
 
         if (!result.Users.Any()) return NotFound();
 
@@ -213,7 +201,7 @@ public class AccountController : ControllerBase
     public async Task<ActionResult<BaseApiResponse<bool>>> UpdateUser([FromRoute] string id,
         [FromBody] UpdateUserInput updateInput)
     {
-        var result = await _accessControl.UpdateUser(id, updateInput);
+        var result = await accessControl.UpdateUser(id, updateInput);
         if (!result) return NotFound();
 
         return Ok(new BaseApiResponse<bool> { Result = result });
