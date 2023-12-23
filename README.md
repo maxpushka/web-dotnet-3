@@ -1,0 +1,1 @@
+# Plagiarizm checker
