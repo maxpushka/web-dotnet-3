@@ -399,6 +399,37 @@ namespace Backend.API.Migrations
                 {
                     b.Navigation("UserRoles");
                 });
+            
+            modelBuilder.Entity("Backend.API.Entities.LabSubmission", b =>
+            {
+                b.Property<string>("Id")
+                    .HasColumnType("nvarchar(450)");
+                
+                b.Property<int>("UserId")
+                    .IsRequired()
+                    .HasColumnType("int");
+                
+                b.Property<string>("LabName")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
+                
+                b.Property<DateTime>("SubmissionDate")
+                    .IsRequired()
+                    .HasColumnType("datetime2");
+                
+                b.Property<string>("FileContent")
+                    .IsRequired()
+                    .HasColumnType("nvarchar(max)");
+            
+                b.HasKey("Id");
+                b.HasOne("Backend.API.Entities.ApplicationUser", "User")
+                    .WithMany()
+                    .HasForeignKey("UserId")
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .IsRequired();
+                    
+                b.ToTable("LabSubmissions", (string)null);
+            });
 #pragma warning restore 612, 618
         }
     }

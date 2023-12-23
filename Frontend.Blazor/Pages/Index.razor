@@ -1,9 +1,82 @@
 ﻿@page "/"
+@using Frontend.Blazor.Models
+@inject LabService LabService
+@inject LoginService LoginService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Index</PageTitle>
+<EditForm Model="@_analysisRequest" OnSubmit="@HandleFileUpload">
+    <InputText id="labName" @bind-Value="_analysisRequest.Name" placeholder="Enter Lab Name"/>
+    <InputFile OnChange="@OnInputFileChange" multiple/>
+    <button type="submit">Upload</button>
+</EditForm>
 
-<h1>Hello, world!</h1>
+@if (_uploadMessages != null)
+{
+    foreach (var message in _uploadMessages)
+    {
+        <div>@message</div>
+    }
+}
 
-Welcome to your new app.
+@code {
+    private readonly AnalysisRequest _analysisRequest = new();
+    private readonly List<IBrowserFile> _selectedFiles = [];
+    private readonly List<string> _uploadMessages = [];
 
-<SurveyPrompt Title="How is Blazor working for you?"/>
+    private void OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles())
+        {
+            if (file.Name.EndsWith(".cs"))
+            {
+                _selectedFiles.Add(file);
+            }
+            else
+            {
+                _uploadMessages.Add($"{file.Name} is not a C# file.");
+            }
+        }
+    }
+
+    private async Task HandleFileUpload()
+    {
+        _analysisRequest.FilesContent = new Dictionary<string, string>();
+
+        if (_analysisRequest.Name == null)
+        {
+            _uploadMessages.Add("Please enter a lab name.");
+            return;
+        }
+
+        foreach (var file in _selectedFiles)
+        {
+            try
+            {
+                var stream = file.OpenReadStream();
+                var buffer = new byte[file.Size];
+                _ = await stream.ReadAsync(buffer);
+
+                // Encode file in Base64 format
+                var fileContentBase64 = Convert.ToBase64String(buffer);
+                _analysisRequest.FilesContent.Add(file.Name, fileContentBase64);
+            }
+            catch (Exception ex)
+            {
+                _uploadMessages.Add($"Error uploading {file.Name}: {ex.Message}");
+            }
+        }
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        foreach (var claim in authState.User.Claims)
+        {
+            if (claim.Type != "sid") continue;
+            _analysisRequest.UserId = claim.Value;
+            break;
+        }
+
+        var accessToken = await LoginService.GetAccessTokenAsync();
+        await LabService.AnalyzeLab(accessToken, _analysisRequest);
+        _selectedFiles.Clear(); // Clear the list after uploading
+    }
+
+}

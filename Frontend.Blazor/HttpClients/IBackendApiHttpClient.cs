@@ -9,4 +9,7 @@ public interface IBackendApiHttpClient
 
     Task<ApiResponse<AuthResponse>> RefreshTokenAsync(string refreshToken,
         CancellationToken? cancellationToken = null);
+
+    Task<ApiResponse<AnalysisResponse>> AnalyzeLabAsync(string authToken, AnalysisRequest analysisRequest,
+        CancellationToken? cancellationToken = null);
 }
