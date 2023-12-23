@@ -2,7 +2,6 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using Frontend.Blazor.HttpClients;
 using Frontend.Blazor.Models;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
@@ -18,8 +17,7 @@ public class LoginService
     private readonly IConfiguration _configuration;
     private readonly IBackendApiHttpClient _backendApiHttpClient;
 
-    public LoginService(ProtectedLocalStorage localStorage, NavigationManager navigation, IConfiguration configuration,
-        IBackendApiHttpClient backendApiHttpClient)
+    public LoginService(ProtectedLocalStorage localStorage, NavigationManager navigation, IConfiguration configuration, IBackendApiHttpClient backendApiHttpClient)
     {
         _localStorage = localStorage;
         _navigation = navigation;
@@ -30,9 +28,9 @@ public class LoginService
     public async Task<bool> LoginAsync(LoginModel model)
     {
         var response = await _backendApiHttpClient.LoginUserAsync(model);
-        if (string.IsNullOrEmpty(response?.Result?.JwtToken))
+        if (string.IsNullOrEmpty(response?.Result?.JwtToken)) 
             return false;
-
+        
         await _localStorage.SetAsync(AccessToken, response.Result.JwtToken);
         await _localStorage.SetAsync(RefreshToken, response.Result.RefreshToken);
 
@@ -56,14 +54,14 @@ public class LoginService
             return emptyResult;
         }
 
-        if (accessToken.Success is false || accessToken.Value == default)
+        if (accessToken.Success is false || accessToken.Value == default) 
             return emptyResult;
-
+        
         var claims = JwtTokenHelper.ValidateDecodeToken(accessToken.Value, _configuration);
-
-        if (claims.Count != 0)
+            
+        if (claims.Count != 0) 
             return claims;
-
+            
         if (refreshToken.Value != default)
         {
             var response = await _backendApiHttpClient.RefreshTokenAsync(refreshToken.Value);
@@ -83,7 +81,6 @@ public class LoginService
         {
             await LogoutAsync();
         }
-
         return claims;
     }
 
@@ -97,17 +94,5 @@ public class LoginService
     {
         await _localStorage.DeleteAsync(AccessToken);
         await _localStorage.DeleteAsync(RefreshToken);
-    }
-
-    public async Task<string> GetAccessTokenAsync()
-    {
-        ProtectedBrowserStorageResult<string> accessToken = await _localStorage.GetAsync<string>(AccessToken);
-
-        if (!accessToken.Success)
-        {
-            throw new AuthenticationFailureException("Access token not found");
-        }
-
-        return accessToken.Value;
     }
 }

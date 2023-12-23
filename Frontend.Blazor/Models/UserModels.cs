@@ -13,7 +13,8 @@ public class LoginModel
     public string Password { get; set; }
 }
 
-public class UserRegisterInput : LoginModel
+
+public class UserRegisterInput: LoginModel
 {
     public string Mobile { get; set; }
 
@@ -35,22 +36,4 @@ public class UserRegisterInput : LoginModel
     [DataType(DataType.Password)]
     [Compare("Password", ErrorMessage = "Password and confirm password do not match.")]
     public string ConfirmPassword { get; set; }
-}
-
-public class UsersResponse
-{
-    public List<UserVM> Users { get; set; } = new();
-    public int TotalRow { get; set; }
-}
-
-public class UserVM
-{
-    public string Username { get; set; }
-    public string Email { get; set; }
-    public string Name { get; set; }
-    public string Family { get; set; }
-    public DateTime CreationDate { get; set; }
-    public string Mobile { get; set; }
-    public string Id { get; set; }
-    public List<string> Role { get; set; }
 }

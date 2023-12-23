@@ -3,35 +3,34 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Frontend.Blazor.Code;
-
-public static class JwtTokenHelper
+namespace Frontend.Blazor.Code
 {
-    public static List<Claim> ValidateDecodeToken(string token, IConfiguration configuration)
+    public static class JwtTokenHelper
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
-
-        try
+        public static List<Claim> ValidateDecodeToken(string token, IConfiguration configuration)
         {
-            tokenHandler.ValidateToken(token, new TokenValidationParameters
+            var tokenHandler = new JwtSecurityTokenHandler();
+
+            try
             {
-                ValidateIssuerSigningKey = true,
-                ValidateIssuer = true,
-                ValidateAudience = false,
-                ValidateLifetime = true,
-                RequireExpirationTime = true,
-                ValidIssuer = configuration.GetValue<string>("JWTSettings:ValidIssuer"),
-                IssuerSigningKey =
-                    new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(configuration.GetValue<string>("JWTSettings:Secret")))
-            }, out var validatedToken);
-        }
-        catch
-        {
-            return new List<Claim>();
-        }
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = false,
+                    ValidateLifetime = true,
+                    RequireExpirationTime = true,
+                    ValidIssuer = configuration.GetValue<string>("JWTSettings:ValidIssuer"),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("JWTSettings:Secret")))
+                }, out var validatedToken);
+            }
+            catch
+            {
+                return new List<Claim>();
+            }
 
-        var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
-        return securityToken?.Claims.ToList();
+            var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;
+            return securityToken?.Claims.ToList();
+        }
     }
 }

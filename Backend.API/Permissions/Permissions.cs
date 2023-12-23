@@ -5,6 +5,10 @@ namespace Backend.API.Permissions;
 
 public class Permission
 {
+    protected Permission()
+    {
+    }
+
     protected Permission(string key, string title, string value = "")
     {
         Nodes = new List<Permission>();

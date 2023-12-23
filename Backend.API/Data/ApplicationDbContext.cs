@@ -9,9 +9,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IdentityUserClaim<string>
     , ApplicationUserRole, IdentityUserLogin<string>, IdentityRoleClaim<string>, IdentityUserToken<string>>
 {
-    public DbSet<Lab> Labs { get; set; }
-    public DbSet<LabFile> LabFiles { get; set; }
-
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
     {
     }
@@ -88,8 +85,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                     NormalizedUserName = "JOEDOE@GMAIL.COM",
                     PhoneNumberConfirmed = true,
                     RefreshTokenExpireTime = DateTime.MinValue,
-                    PasswordHash =
-                        "AQAAAAIAAYagAAAAEK1W3FMebsaQ5p6sqwXybnO6AdMcllqC99NBccKaS99FJZji0MmRjLfY4vMAR/ldRA=="
+                    PasswordHash = "AQAAAAIAAYagAAAAEK1W3FMebsaQ5p6sqwXybnO6AdMcllqC99NBccKaS99FJZji0MmRjLfY4vMAR/ldRA=="
                 },
                 new ApplicationUser
                 {
@@ -108,8 +104,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
                     NormalizedUserName = "JILLDOE@GMAIL.COM",
                     PhoneNumberConfirmed = true,
                     RefreshTokenExpireTime = DateTime.MinValue,
-                    PasswordHash =
-                        "AQAAAAIAAYagAAAAEK1W3FMebsaQ5p6sqwXybnO6AdMcllqC99NBccKaS99FJZji0MmRjLfY4vMAR/ldRA=="
+                    PasswordHash = "AQAAAAIAAYagAAAAEK1W3FMebsaQ5p6sqwXybnO6AdMcllqC99NBccKaS99FJZji0MmRjLfY4vMAR/ldRA=="
                 });
         });
 
