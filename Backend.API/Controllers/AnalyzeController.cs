@@ -19,7 +19,7 @@ public class AnalyzeController(UserManager<ApplicationUser> userManager, Applica
     public async Task<ActionResult<BaseApiResponse<AnalysisResponse>>> AnalyzeLab([FromBody] AnalysisInput input)
     {
         var user = await userManager.FindByIdAsync(input.UserId);
-        if (user == null) return NotFound("User not found");
+        if (user == null) return NotFound($"User not found: {input.UserId}");
 
         var labFiles = await PersistLab(input, user.Id);
         var result = await PerformDuplicationAnalysis(labFiles, context);
