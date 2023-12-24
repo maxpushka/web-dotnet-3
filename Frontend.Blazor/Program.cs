@@ -10,9 +10,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
-builder.Services.AddTransient<LoginService>();
+builder.Services.AddTransient<ILoginService, LoginService>();
 builder.Services.AddTransient<LabService>();
 builder.Services.AddTransient<UserService>();
+builder.Services.AddTransient<ILocalStorage, LocalStorage>();
+builder.Services.AddTransient<IProtectedLocalStorage, ProtectedLocalStorageWrapper>();
+builder.Services.AddTransient<INavigationManager, NavigationManagerWrapper>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddHttpClient<IBackendApiHttpClient, BackendApiHttpClient>(options =>
 {

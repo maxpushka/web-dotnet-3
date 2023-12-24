@@ -20,6 +20,13 @@ public interface IProtectedLocalStorage
     ValueTask DeleteAsync(string key);
 }
 
+public interface ILocalStorage
+{
+    Task SetAsync<T>(string key, T value);
+    Task<T> GetAsync<T>(string key);
+    Task DeleteAsync(string key);
+}
+
 public interface INavigationManager
 {
     void NavigateTo([StringSyntax("Uri")] string uri, bool forceLoad);

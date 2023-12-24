@@ -1,37 +1,13 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Frontend.Blazor.HttpClients;
 using Frontend.Blazor.Models;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace Frontend.Blazor.Code;
-
-// ILocalStorage wraps common operations on ProtectedLocalStorage class
-public interface ILocalStorage
-{
-    Task SetAsync<T>(string key, T value);
-    Task<T> GetAsync<T>(string key);
-    Task DeleteAsync(string key);
-}
-
-public class LocalStorage(IProtectedLocalStorage localStorage) : ILocalStorage
-{
-    public async Task SetAsync<T>(string key, T value)
-    {
-        await localStorage.SetAsync(key, value);
-    }
-
-    public async Task<T> GetAsync<T>(string key)
-    {
-        var storageResult = await localStorage.GetAsync<T>(key);
-        return !storageResult.Success ? default : storageResult.Value;
-    }
-
-    public async Task DeleteAsync(string key)
-    {
-        await localStorage.DeleteAsync(key);
-    }
-}
 
 public class LoginService(
     ILocalStorage localStorage,
@@ -122,5 +98,50 @@ public class LoginService(
         }
 
         return accessToken;
+    }
+}
+
+public class LocalStorage(IProtectedLocalStorage localStorage) : ILocalStorage
+{
+    public async Task SetAsync<T>(string key, T value)
+    {
+        await localStorage.SetAsync(key, value);
+    }
+
+    public async Task<T> GetAsync<T>(string key)
+    {
+        var storageResult = await localStorage.GetAsync<T>(key);
+        return !storageResult.Success ? default : storageResult.Value;
+    }
+
+    public async Task DeleteAsync(string key)
+    {
+        await localStorage.DeleteAsync(key);
+    }
+}
+
+public class ProtectedLocalStorageWrapper(ProtectedLocalStorage localStorage) : IProtectedLocalStorage
+{
+    public async ValueTask<ProtectedBrowserStorageResult<TValue>> GetAsync<TValue>(string key)
+    {
+        return await localStorage.GetAsync<TValue>(key);
+    }
+
+    public async ValueTask SetAsync(string key, object value)
+    {
+        await localStorage.SetAsync(key, value);
+    }
+
+    public async ValueTask DeleteAsync(string key)
+    {
+        await localStorage.DeleteAsync(key);
+    }
+}
+
+public class NavigationManagerWrapper(NavigationManager navigationManager) : INavigationManager
+{
+    public void NavigateTo([StringSyntax("Uri")] string uri, bool forceLoad)
+    {
+        navigationManager.NavigateTo(uri, forceLoad);
     }
 }

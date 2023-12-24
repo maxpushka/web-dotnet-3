@@ -137,7 +137,7 @@ public class LoginServiceTest
     public async Task GetAccessTokenAsync_ReturnsAccessToken_WhenAccessTokenIsValid()
     {
         // Arrange
-        var token = "Token";
+        const string token = "Token";
         _localStorageMock.Setup(x => x.GetAsync<string>(It.IsAny<string>())).ReturnsAsync(token);
         var service = new LoginService(_localStorageMock.Object, _navigationManagerMock.Object,
             _configurationMock.Object, _backendApiHttpClientMock.Object);
