@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.API.Entities;
 
-public class Lab
+public record Lab
 {
     [Key] public string Id { get; set; }
 

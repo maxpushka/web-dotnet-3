@@ -3,7 +3,7 @@ using Backend.API.Entities;
 
 namespace Backend.API.Models;
 
-public class UpdateUserInput
+public record UpdateUserInput
 {
     public string Mobile { get; set; }
 
@@ -21,7 +21,7 @@ public class UpdateUserInput
     public List<string> Role { get; set; }
 }
 
-public class UpdateUserResult
+public record UpdateUserResult
 {
     public ApplicationUser UpdatedUser { get; set; }
     public bool Succeeded { get; set; }

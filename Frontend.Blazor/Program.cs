@@ -13,7 +13,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddTransient<ILoginService, LoginService>();
 builder.Services.AddTransient<LabService>();
 builder.Services.AddTransient<UserService>();
-builder.Services.AddTransient<ILocalStorage, LocalStorage>();
+builder.Services.AddTransient<ILocalStorage, LocalStorageWrapper>();
 builder.Services.AddTransient<IProtectedLocalStorage, ProtectedLocalStorageWrapper>();
 builder.Services.AddTransient<INavigationManager, NavigationManagerWrapper>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();

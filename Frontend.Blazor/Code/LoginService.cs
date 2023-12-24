@@ -101,7 +101,7 @@ public class LoginService(
     }
 }
 
-public class LocalStorage(IProtectedLocalStorage localStorage) : ILocalStorage
+public class LocalStorageWrapper(IProtectedLocalStorage localStorage) : ILocalStorage
 {
     public async Task SetAsync<T>(string key, T value)
     {

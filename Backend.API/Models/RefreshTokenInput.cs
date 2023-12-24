@@ -1,6 +1,6 @@
 ﻿namespace Backend.API.Models;
 
-public class RefreshTokenInput
+public record RefreshTokenInput
 {
     public string RefreshToken { get; set; }
 }

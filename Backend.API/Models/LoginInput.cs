@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Backend.API.Models;
 
-public class LoginInput
+public record LoginInput
 {
     [Required] public string Email { get; set; }
 

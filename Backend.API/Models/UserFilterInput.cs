@@ -1,6 +1,6 @@
 namespace Backend.API.Models;
 
-public class UserFilterInput
+public record UserFilterInput
 {
     public string Email { get; set; }
     public string Role { get; set; }

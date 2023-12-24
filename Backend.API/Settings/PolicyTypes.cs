@@ -7,5 +7,4 @@ public static class PolicyTypes
         public const string View = "users.view.policy";
         public const string Manage = "users.manage.policy";
     }
-
 }

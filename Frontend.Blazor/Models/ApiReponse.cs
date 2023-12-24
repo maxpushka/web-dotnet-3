@@ -1,7 +1,7 @@
 ﻿
 namespace Frontend.Blazor.Models;
 
-public class ApiResponse<T>
+public record ApiResponse<T>
 {
     public T Result { get; set; }
     public List<string> Errors { get; set; }

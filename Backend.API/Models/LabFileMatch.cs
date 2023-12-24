@@ -1,6 +1,6 @@
 namespace Backend.API.Models;
 
-public class LabFileMatch
+public record LabFileMatch
 {
     public string FileId { get; set; }
     public string DuplicateWith { get; set; }

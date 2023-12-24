@@ -1,6 +1,6 @@
 namespace Backend.API.Models;
 
-public class AnalysisInput
+public record AnalysisInput
 {
     public string UserId { get; set; }
 

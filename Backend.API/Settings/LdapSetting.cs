@@ -1,6 +1,6 @@
 ﻿namespace Backend.API.Settings;
 
-public class LdapSetting
+public record LdapSetting
 {
     public string LdapPath { get; set; }
     public string LdapDomain { get; set; }

@@ -3,7 +3,7 @@ using Backend.API.Permissions;
 
 namespace Backend.API.Models;
 
-public class UserRegisterInput
+public record UserRegisterInput
 {
     [Required] [EmailAddress] public string Email { get; set; }
 
