@@ -77,7 +77,6 @@ public class JwtTokenHelperTest
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
         var header = new JwtHeader(credentials);
 
-        //Here we create some arbitrary claim. You can replace this with whatever you need for your test.
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, "TestUser")

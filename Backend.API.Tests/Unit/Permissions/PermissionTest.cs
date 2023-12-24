@@ -1,9 +1,9 @@
+using System.Linq;
 using Backend.API.Permissions;
 using JetBrains.Annotations;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Linq;
 
-namespace Frontend.Blazor.Tests.Permissions;
+namespace Backend.API.Tests.Unit.Permissions;
 
 [TestClass]
 [TestSubject(typeof(Permission))]

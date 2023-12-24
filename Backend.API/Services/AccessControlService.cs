@@ -322,7 +322,7 @@ public class AccessControlService(
         return item;
     }
 
-    public string GenerateJWTToken(Claim[] claims)
+    public string GenerateJwtToken(Claim[] claims)
     {
         var finalClaims = new List<Claim>();
         if (claims == null) return null;
