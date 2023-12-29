@@ -1,0 +1,131 @@
+﻿@page "/"
+@using Frontend.Blazor.Models
+@inject LabService LabService
+@inject LoginService LoginService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<EditForm Model="@_analysisRequest" OnSubmit="@HandleFileUpload">
+    <InputText id="labName" @bind-Value="_analysisRequest.Name" placeholder="Enter Lab Name"/>
+    <InputFile OnChange="@OnInputFileChange" multiple/>
+    <button type="submit">Upload</button>
+</EditForm>
+
+@if (_uploadMessages != null)
+{
+    foreach (var message in _uploadMessages)
+    {
+        <div>@message</div>
+    }
+}
+
+@if (_analysisResponse?.Matches.Count > 0)
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>File ID</th>
+            <th>Duplicate With</th>
+            <th>Duplicate Percentage</th>
+            <th>Duplicated Lines</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var match in _analysisResponse.Matches)
+        {
+            <tr>
+                <td>@match.FileId</td>
+                <td>@match.DuplicateWith</td>
+                <td>
+                    @match.DuplicatePercentage <span>%</span>
+                </td>
+                <td>
+                    @foreach (var line in match.DuplicatedLines)
+                    {
+                        <div>@line</div>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+else
+{
+    <div>No matches found.</div>
+}
+
+@code {
+    private readonly AnalysisRequest _analysisRequest = new();
+    private AnalysisResponse _analysisResponse = null;
+    private readonly List<IBrowserFile> _selectedFiles = [];
+    private readonly List<string> _uploadMessages = [];
+
+    private void OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        foreach (var file in e.GetMultipleFiles())
+        {
+            if (file.Name.EndsWith(".cs"))
+            {
+                _selectedFiles.Add(file);
+            }
+            else
+            {
+                _uploadMessages.Add($"{file.Name} is not a C# file.");
+            }
+        }
+    }
+
+    private async Task HandleFileUpload()
+    {
+        _analysisRequest.FilesContent = new Dictionary<string, string>();
+
+        if (_analysisRequest.Name == null)
+        {
+            _uploadMessages.Add("Please enter a lab name.");
+            return;
+        }
+
+        foreach (var file in _selectedFiles)
+        {
+            try
+            {
+                var stream = file.OpenReadStream();
+                var buffer = new byte[file.Size];
+                _ = await stream.ReadAsync(buffer);
+
+                // Encode file in Base64 format
+                var fileContentBase64 = Convert.ToBase64String(buffer);
+                _analysisRequest.FilesContent.Add(file.Name, fileContentBase64);
+            }
+            catch (Exception ex)
+            {
+                _uploadMessages.Add($"Error uploading {file.Name}: {ex.Message}");
+            }
+        }
+
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        foreach (var claim in authState.User.Claims)
+        {
+            if (claim.Type != "sid") continue;
+            _analysisRequest.UserId = claim.Value;
+            break;
+        }
+
+        try
+        {
+            var accessToken = await LoginService.GetAccessTokenAsync();
+            var analysisResponse = await LabService.AnalyzeLab(accessToken, _analysisRequest);
+            _analysisResponse = analysisResponse;
+
+            // Clear lists after uploading
+            _selectedFiles.Clear();
+            _uploadMessages.Clear();
+        }
+        catch (Exception ex)
+        {
+            _uploadMessages.Clear();
+            _uploadMessages.Add($"Error analyzing lab: {ex.Message}");
+        }
+    }
+
+}
