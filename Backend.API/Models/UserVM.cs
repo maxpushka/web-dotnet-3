@@ -1,6 +1,6 @@
 namespace Backend.API.Models;
 
-public class UserVM
+public record UserVM
 {
     public string Username { get; set; }
     public string Email { get; set; }
@@ -12,7 +12,7 @@ public class UserVM
     public List<string> Role { get; set; }
 }
 
-public class UserListVM
+public record UserListVM
 {
     public List<UserVM> Users { get; set; }
     public int TotalRow { get; set; }

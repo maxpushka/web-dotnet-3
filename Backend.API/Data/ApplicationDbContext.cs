@@ -5,16 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.API.Data;
 
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string,
-    IdentityUserClaim<string>
-    , ApplicationUserRole, IdentityUserLogin<string>, IdentityRoleClaim<string>, IdentityUserToken<string>>
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    : IdentityDbContext<ApplicationUser, ApplicationRole, string,
+        IdentityUserClaim<string>
+        , ApplicationUserRole, IdentityUserLogin<string>, IdentityRoleClaim<string>, IdentityUserToken<string>>(options)
 {
     public DbSet<Lab> Labs { get; set; }
     public DbSet<LabFile> LabFiles { get; set; }
-
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-    {
-    }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

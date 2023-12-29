@@ -28,7 +28,7 @@ public static class JwtTokenHelper
         }
         catch
         {
-            return new List<Claim>();
+            return [];
         }
 
         var securityToken = tokenHandler.ReadToken(token) as JwtSecurityToken;

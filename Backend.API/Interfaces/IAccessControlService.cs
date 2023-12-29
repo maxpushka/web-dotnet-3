@@ -14,7 +14,7 @@ public interface IAccessControlService
     //Task<UpdateUserResult> UpdateUserRole(string email, List<string> roleName);
     Task<List<RoleItem>> GetAllRoles();
     Task<bool> UpdateRolePermissions(string roleId, RoleInput roleInput);
-    string GenerateJWTToken(Claim[] claims);
+    string GenerateJwtToken(Claim[] claims);
     Task<Claim[]> GetUserClaimsBy(string email);
     Task<bool> SetUserRefreshToken(string username, string refreshToken, TimeSpan expireationTime);
     string GenerateRefreshToken();

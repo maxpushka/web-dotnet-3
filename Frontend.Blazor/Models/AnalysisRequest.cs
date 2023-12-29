@@ -1,6 +1,6 @@
 namespace Frontend.Blazor.Models;
 
-public class AnalysisRequest
+public record AnalysisRequest
 {
     public string UserId { get; set; }
 

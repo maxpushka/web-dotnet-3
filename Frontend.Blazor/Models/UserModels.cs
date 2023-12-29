@@ -2,7 +2,7 @@
 
 namespace Frontend.Blazor.Models;
 
-public class LoginModel
+public record LoginModel
 {
     [Required(ErrorMessage = "Email is required.")]
     [EmailAddress(ErrorMessage = "Email address is not valid.")]
@@ -13,7 +13,7 @@ public class LoginModel
     public string Password { get; set; }
 }
 
-public class UserRegisterInput : LoginModel
+public record UserRegisterInput : LoginModel
 {
     public string Mobile { get; set; }
 
@@ -37,13 +37,13 @@ public class UserRegisterInput : LoginModel
     public string ConfirmPassword { get; set; }
 }
 
-public class UsersResponse
+public record UsersResponse
 {
     public List<UserVM> Users { get; set; } = new();
     public int TotalRow { get; set; }
 }
 
-public class UserVM
+public record UserVM
 {
     public string Username { get; set; }
     public string Email { get; set; }

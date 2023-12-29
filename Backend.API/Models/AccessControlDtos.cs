@@ -3,7 +3,7 @@ using Backend.API.Permissions;
 
 namespace Backend.API.Models;
 
-public class UserRegisterInput
+public record UserRegisterInput
 {
     [Required] [EmailAddress] public string Email { get; set; }
 
@@ -20,34 +20,44 @@ public class UserRegisterInput
     public string Family { get; set; }
 
     public string UserName { get; set; }
-    
-    [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+
+    [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.",
+        MinimumLength = 6)]
     [DataType(DataType.Password)]
     [Display(Name = "Password")]
     public string Password { get; set; }
-    
+
     [DataType(DataType.Password)]
     [Display(Name = "Confirm password")]
     [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
     public string ConfirmPassword { get; set; }
+
     public string[] Role { get; set; }
 }
 
 public class RoleItem
 {
+    public RoleItem()
+    {
+    }
+
     public RoleItem(string id, string name, PermissionList permissionList)
     {
         Id = id;
         Name = name;
-        _permissionList = permissionList;
+        Permissions = permissionList.Permissions;
     }
 
-    public string Id { get; private set; }
-    public string Name { get; private set; }
+    public RoleItem(string id, string name, ICollection<Permission> permissions)
+    {
+        Id = id;
+        Name = name;
+        Permissions = permissions;
+    }
 
-
-    private PermissionList _permissionList { get; }
-    public ICollection<Permission> Permissions => _permissionList.Permissions;
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public ICollection<Permission> Permissions { get; set; }
 }
 
 public class PermissionInput

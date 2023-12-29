@@ -14,34 +14,25 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Backend.API.Services;
 
-public class AccessControlService : IAccessControlService
+public class AccessControlService(
+    UserManager<ApplicationUser> userManager,
+    RoleManager<ApplicationRole> roleManager,
+    IOptions<JwtSettings> jwtSettings,
+    ILogger<AccessControlService> logger)
+    : IAccessControlService
 {
-    private readonly JwtSettings _jwtSettings;
-    private readonly ILogger<AccessControlService> _logger;
-    private readonly RoleManager<ApplicationRole> _roleManager;
-    private readonly UserManager<ApplicationUser> _userManager;
-
-    public AccessControlService(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager,
-        IOptions<JwtSettings> jwtSettings, ILogger<AccessControlService> logger)
-    {
-        _userManager = userManager;
-        _roleManager = roleManager;
-        _jwtSettings = jwtSettings.Value;
-        _logger = logger;
-    }
+    private readonly JwtSettings _jwtSettings = jwtSettings.Value;
 
     public async Task<Claim[]> GetUserClaimsBy(string email)
     {
-        var user = await _userManager.FindByEmailAsync(email);
+        var user = await userManager.FindByEmailAsync(email);
         if (user == null || user.Disabled) return null;
 
-        var roles = await _userManager.GetRolesAsync(user);
-        if (roles == null) return null;
-
+        var roles = await userManager.GetRolesAsync(user);
         var userRole = roles.Select(x => new Claim(ClaimTypes.Role, x));
-        var userClaims = await _userManager.GetClaimsAsync(user);
-        var roleClaims = await _roleManager.FindByNameAsync(roles.FirstOrDefault())
-            .ContinueWith(x => _roleManager.GetClaimsAsync(x.Result)).Unwrap();
+        var userClaims = await userManager.GetClaimsAsync(user);
+        var roleClaims = await roleManager.FindByNameAsync(roles.FirstOrDefault())
+            .ContinueWith(x => roleManager.GetClaimsAsync(x.Result)).Unwrap();
         return new Claim[]
         {
             new(ClaimTypes.Email, user.Email),
@@ -65,11 +56,11 @@ public class AccessControlService : IAccessControlService
         };
         var passwordHasher = new PasswordHasher<ApplicationUser>();
         user.PasswordHash = passwordHasher.HashPassword(user, input.Password);
-        
-        var result = await _userManager.CreateAsync(user);
+
+        var result = await userManager.CreateAsync(user);
         if (result.Succeeded)
         {
-            var roleResult = await _userManager.AddToRolesAsync(user, input.Role);
+            var roleResult = await userManager.AddToRolesAsync(user, input.Role);
             if (roleResult.Succeeded) return new List<string>();
 
             return roleResult.Errors.Select(x => x.Description).ToList();
@@ -84,13 +75,13 @@ public class AccessControlService : IAccessControlService
         var result = new UpdateUserResult { Succeeded = false, UpdatedUser = user };
 
         if (!string.IsNullOrEmpty(id))
-            user = await _userManager.FindByIdAsync(id);
+            user = await userManager.FindByIdAsync(id);
 
         if (user == null)
             return result;
 
         user.Disabled = true;
-        var identityResult = await _userManager.UpdateAsync(user);
+        var identityResult = await userManager.UpdateAsync(user);
         if (identityResult.Succeeded)
         {
             result.Succeeded = identityResult.Succeeded;
@@ -103,7 +94,7 @@ public class AccessControlService : IAccessControlService
 
     public async Task<string> RefreshTokenExists(string refreshToken)
     {
-        var user = await _userManager.Users.FirstOrDefaultAsync(x =>
+        var user = await userManager.Users.FirstOrDefaultAsync(x =>
             x.RefreshToken == refreshToken && x.RefreshTokenExpireTime > DateTime.Now);
         return user?.Email;
     }
@@ -114,7 +105,7 @@ public class AccessControlService : IAccessControlService
         try
         {
             var role = new ApplicationRole(roleInput.Name);
-            var result = await _roleManager.CreateAsync(role);
+            var result = await roleManager.CreateAsync(role);
             if (result.Succeeded)
             {
                 var errors = new List<string>();
@@ -125,7 +116,7 @@ public class AccessControlService : IAccessControlService
                         if (claim.IsChecked)
                         {
                             var claimResult =
-                                await _roleManager.AddClaimAsync(role,
+                                await roleManager.AddClaimAsync(role,
                                     new Claim(ClaimConstants.PermissionClaimName, claim.Value));
                             if (!claimResult.Succeeded)
                                 errors.AddRange(claimResult.Errors.Select(x => x.Description).ToList());
@@ -133,7 +124,7 @@ public class AccessControlService : IAccessControlService
                         else
                         {
                             var claimResult =
-                                await _roleManager.RemoveClaimAsync(role,
+                                await roleManager.RemoveClaimAsync(role,
                                     new Claim(ClaimConstants.PermissionClaimName, claim.Value));
                             if (!claimResult.Succeeded)
                                 errors.AddRange(claimResult.Errors.Select(x => x.Description).ToList());
@@ -151,7 +142,7 @@ public class AccessControlService : IAccessControlService
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Exception occured on create Role {ex}");
+            logger.LogError($"Exception occured on create Role {ex}");
             return new List<string>();
         }
     }
@@ -161,10 +152,10 @@ public class AccessControlService : IAccessControlService
         try
         {
             var result = new List<RoleItem>();
-            var roles = _roleManager.Roles.ToList();
+            var roles = roleManager.Roles.ToList();
             foreach (var role in roles)
             {
-                var cl = await _roleManager.GetClaimsAsync(role);
+                var cl = await roleManager.GetClaimsAsync(role);
                 var permissions =
                     cl.Where(x => x.Type == ClaimConstants.PermissionClaimName).Select(x => x.Value).ToList();
 
@@ -178,7 +169,7 @@ public class AccessControlService : IAccessControlService
         }
         catch (Exception ex)
         {
-            _logger.LogError($" exception in getAllRoles {ex}");
+            logger.LogError($" exception in getAllRoles {ex}");
             return null;
         }
     }
@@ -187,15 +178,15 @@ public class AccessControlService : IAccessControlService
     {
         try
         {
-            var user = await _userManager.FindByEmailAsync(username);
+            var user = await userManager.FindByEmailAsync(username);
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpireTime = DateTime.Now.Add(expirationTime);
-            var result = await _userManager.UpdateAsync(user);
+            var result = await userManager.UpdateAsync(user);
             return result.Succeeded;
         }
         catch (Exception ex)
         {
-            _logger.LogError($"exception on refresh token {ex}");
+            logger.LogError($"exception on refresh token {ex}");
             throw;
         }
     }
@@ -212,32 +203,33 @@ public class AccessControlService : IAccessControlService
 
     public async Task<bool> UpdateRolePermissions(string roleId, RoleInput roleInput)
     {
-        var role = await _roleManager.FindByIdAsync(roleId);
+        var role = await roleManager.FindByIdAsync(roleId);
         if (role == null) return false;
 
         if (!string.IsNullOrEmpty(roleInput.Name) &&
             !role.Name.Equals(roleInput.Name, StringComparison.InvariantCultureIgnoreCase))
         {
             role.Name = roleInput.Name;
-            await _roleManager.UpdateAsync(role);
+            await roleManager.UpdateAsync(role);
         }
 
-        var roleClaims = (await _roleManager.GetClaimsAsync(role)).Where(x => x.Type == ClaimConstants.PermissionClaimName);
+        var roleClaims =
+            (await roleManager.GetClaimsAsync(role)).Where(x => x.Type == ClaimConstants.PermissionClaimName);
         var addedPermissions = roleInput.Permissions.Where(p => p.IsChecked).Select(p => p.Value);
         var removedPermissions = roleInput.Permissions.Where(p => !p.IsChecked).Select(p => p.Value);
         var removedClaims = roleClaims.Where(c => removedPermissions.Contains(c.Value));
 
-        foreach (var claim in removedClaims) await _roleManager.RemoveClaimAsync(role, claim);
+        foreach (var claim in removedClaims) await roleManager.RemoveClaimAsync(role, claim);
 
         foreach (var claim in addedPermissions)
-            await _roleManager.AddClaimAsync(role, new Claim(ClaimConstants.PermissionClaimName, claim));
+            await roleManager.AddClaimAsync(role, new Claim(ClaimConstants.PermissionClaimName, claim));
 
         return true;
     }
 
     public async Task<UserListVM> GetUsers(UserFilterInput filterInput)
     {
-        var items = await _userManager.Users.Include(u => u.UserRoles).OrderBy(x => x.Email)
+        var items = await userManager.Users.Include(u => u.UserRoles).OrderBy(x => x.Email)
             .Where(x =>
                 (string.IsNullOrEmpty(filterInput.Email) ||
                  x.Email.ToLower().Contains(filterInput.Email.ToLower()))
@@ -261,7 +253,7 @@ public class AccessControlService : IAccessControlService
                     Role = x.UserRoles.Select(y => y.Role.Name).ToList()
                 }).ToListAsync();
 
-        var totalRows = _userManager.Users.Include(u => u.UserRoles).OrderBy(x => x.Email)
+        var totalRows = userManager.Users.Include(u => u.UserRoles).OrderBy(x => x.Email)
             .Count(x =>
                 (string.IsNullOrEmpty(filterInput.Email) ||
                  x.Email.ToLower().Contains(filterInput.Email.ToLower()))
@@ -281,7 +273,7 @@ public class AccessControlService : IAccessControlService
 
     public async Task<bool> UpdateUser(string id, UpdateUserInput input)
     {
-        var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Id == id);
+        var user = await userManager.Users.FirstOrDefaultAsync(x => x.Id == id);
         if (user == null) return false;
 
         user.Name = input.Name;
@@ -290,14 +282,14 @@ public class AccessControlService : IAccessControlService
         if (user.UserName != user.Email) //for auto-correction
             user.UserName = user.Email;
 
-        var result = await _userManager.UpdateAsync(user);
+        var result = await userManager.UpdateAsync(user);
         var roleResult = await UpdateUserRole(id, input.Role);
         return result.Succeeded && roleResult.Succeeded;
     }
 
     public async Task<List<ApplicationUser>> GetUsersByRoleId(string roleId)
     {
-        return await _userManager.Users.Where(x => !x.Disabled && x.UserRoles.Count(y => y.Role.Id == roleId) > 0)
+        return await userManager.Users.Where(x => !x.Disabled && x.UserRoles.Count(y => y.Role.Id == roleId) > 0)
             .ToListAsync();
     }
 
@@ -309,7 +301,7 @@ public class AccessControlService : IAccessControlService
                     var roles = user.UserRoles?.Select(x => x.Role?.Name).ToList();
         */
 
-        var item = await _userManager.Users.Include(u => u.UserRoles).OrderBy(x => x.Email)
+        var item = await userManager.Users.Include(u => u.UserRoles).OrderBy(x => x.Email)
             .Where(x =>
                 x.Id == id
                 && !x.Disabled
@@ -330,7 +322,7 @@ public class AccessControlService : IAccessControlService
         return item;
     }
 
-    public string GenerateJWTToken(Claim[] claims)
+    public string GenerateJwtToken(Claim[] claims)
     {
         var finalClaims = new List<Claim>();
         if (claims == null) return null;
@@ -359,16 +351,16 @@ public class AccessControlService : IAccessControlService
     private async Task<UpdateUserResult> UpdateUserRole(string id, List<string> newRoles)
     {
         var result = new UpdateUserResult { UpdatedUser = null, Succeeded = false };
-        var user = await _userManager.Users.FirstOrDefaultAsync(x => x.Id == id);
+        var user = await userManager.Users.FirstOrDefaultAsync(x => x.Id == id);
         if (user != null)
         {
             result.UpdatedUser = user;
-            var roles = await _userManager.GetRolesAsync(user);
+            var roles = await userManager.GetRolesAsync(user);
             var addedRoles = newRoles.Except(roles);
             var removedRoles = roles.Except(newRoles);
-            if (roles.Count > 0) await _userManager.RemoveFromRolesAsync(user, removedRoles);
+            if (roles.Count > 0) await userManager.RemoveFromRolesAsync(user, removedRoles);
 
-            var updateResult = await _userManager.AddToRolesAsync(user, addedRoles);
+            var updateResult = await userManager.AddToRolesAsync(user, addedRoles);
             if (updateResult.Succeeded)
             {
                 result.Succeeded = updateResult.Succeeded;

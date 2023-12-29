@@ -17,7 +17,7 @@ public class AccountController(
     IAccessControlService accessControl,
     IOptions<JwtSettings> jwtSettings,
     ILdapService ldapService,
-    IMemoryCache memoryChache,
+    IMemoryCache memoryCache,
     ILogger<AccountController> logger,
     IOptions<LdapSetting> ldapSettings,
     UserManager<ApplicationUser> userManager)
@@ -36,22 +36,22 @@ public class AccountController(
 
         if (string.IsNullOrWhiteSpace(userEmail)) return Unauthorized();
 
-        if (memoryChache.TryGetValue(userEmail, out _))
+        if (memoryCache.TryGetValue(userEmail, out _))
         {
             await accessControl.SetUserRefreshToken(userEmail, "", TimeSpan.Zero);
-            memoryChache.Remove(userEmail);
+            memoryCache.Remove(userEmail);
             return Unauthorized();
         }
 
         var claims = await accessControl.GetUserClaimsBy(userEmail);
-        var jwtToken = accessControl.GenerateJWTToken(claims);
+        var jwtToken = accessControl.GenerateJwtToken(claims);
 
         var newRefreshToken = accessControl.GenerateRefreshToken();
         var updateSuccessfully = await accessControl.SetUserRefreshToken(userEmail, newRefreshToken,
             TimeSpan.FromMinutes(_refreshTokenExpiration));
         if (!updateSuccessfully)
             return Conflict(new BaseApiResponse<AuthenticationResponse>
-                { Errors = new List<string> { "Cannot update refresh token" } });
+                { Errors = ["Cannot update refresh token"] });
 
         return Ok(new BaseApiResponse<AuthenticationResponse>
         {
@@ -73,7 +73,7 @@ public class AccountController(
             return BadRequest(response);
         }
 
-        logger.LogTrace($"Login Request recived for Email: {credential.Email}");
+        logger.LogTrace($"Login Request received for Email: {credential.Email}");
         var user = await accessControl.GetUserClaimsBy(credential.Email);
         if (user != null)
         {
@@ -87,13 +87,13 @@ public class AccountController(
                   PasswordVerificationResult.Success;
             if (result)
             {
-                var token = accessControl.GenerateJWTToken(user);
+                var token = accessControl.GenerateJwtToken(user);
                 var refreshToken = accessControl.GenerateRefreshToken();
                 var updateSuccessfully = await accessControl.SetUserRefreshToken(credential.Email, refreshToken,
                     TimeSpan.FromMinutes(_refreshTokenExpiration));
                 if (!updateSuccessfully)
                     return Conflict(new BaseApiResponse<AuthenticationResponse>
-                        { Errors = new List<string> { "Cannot update refresh token" } });
+                        { Errors = ["Cannot update refresh token"] });
 
                 return Ok(new BaseApiResponse<AuthenticationResponse>
                 {
@@ -125,10 +125,9 @@ public class AccountController(
         }
 
         var result = await accessControl.CreateUser(input);
-        if (!result.Any())
-            return Ok(new BaseApiResponse<string>("OK"));
-
-        return BadRequest(new BaseApiResponse<string> { Errors = result });
+        if (result.Any())
+            return BadRequest(new BaseApiResponse<string> { Errors = result });
+        return Ok(new BaseApiResponse<string>("OK"));
     }
 
     [HttpDelete("User/{id}")]
@@ -139,7 +138,7 @@ public class AccountController(
 
         if (!result.Succeeded && result.UpdatedUser == null)
             return NotFound(new BaseApiResponse<string> { Errors = new List<string> { "User not found" } });
-        memoryChache.Set(result.UpdatedUser.Email, 1);
+        memoryCache.Set(result.UpdatedUser.Email, 1);
         return Ok(new BaseApiResponse<string>("done"));
     }
 
@@ -176,11 +175,11 @@ public class AccountController(
 
     [HttpPut("Role/{id}")]
     [Authorize(Policy = PolicyTypes.Users.Manage)]
-    public async Task<ActionResult<BaseApiResponse<bool>>> Update([FromRoute] string id, [FromBody] RoleInput roleInput)
+    public async Task<ActionResult<BaseApiResponse<bool>>> UpdateRole([FromRoute] string id, [FromBody] RoleInput roleInput)
     {
         var result = await accessControl.UpdateRolePermissions(id, roleInput);
         var usersWithThisRole = await accessControl.GetUsersByRoleId(id);
-        usersWithThisRole.ForEach(x => { memoryChache.Set(x.Email, 1); });
+        usersWithThisRole.ForEach(x => { memoryCache.Set(x.Email, 1); });
         return Ok(new BaseApiResponse<bool>(result));
     }
 

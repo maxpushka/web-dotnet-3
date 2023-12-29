@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Backend.API.Models;
 
-public class BaseApiResponse<T>
+public record BaseApiResponse<T>
 {
     public BaseApiResponse(T result)
     {
